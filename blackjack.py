@@ -5,30 +5,35 @@ import os
 import pdb
 
 def print_cards(hand, is_dealer):
-    if is_dealer:
-        for card in hand[:-1]:
-            print(f'{str(card.value)}#' if card.value == 10 else f'{str(card.value)}##', end=' ')
-        print('###', end='')
-    else:
-        for card in hand:
-            print(f'{str(card.value)}#' if card.value == 10 else f'{str(card.value)}##', end=' ')
-    print('')
-    if is_dealer:
-        for card in hand[:-1]:
-            print(f'#{card.suit}#' if card.value == 10 else f'#{card.suit}#', end=' ')
-        print('###', end='')
-    else:
-        for card in hand:
-            print(f'#{card.suit}#' if card.value == 10 else f'#{card.suit}#', end=' ')
-    print('')
-    if is_dealer:
-        for card in hand[:-1]:
-            print(f'#{str(card.value)}' if card.value == 10 else f'##{str(card.value)}', end=' ')
-        print('###', end='')
-    else:
-        for card in hand:
-            print(f'#{str(card.value)}' if card.value == 10 else f'##{str(card.value)}', end=' ')
-    print('')
+	to_print = []
+
+	i = 0
+	j = 1
+	k = 2
+
+	hand_counter = 1
+
+	# for hand in hands:
+	for card in hand:
+		to_print.insert(i, f'{str(card.value)}# ' if card.value == 10 else f'{str(card.value)}## ')
+		to_print.insert(j, f'#{card.suit}# ')
+		to_print.insert(k, f'#{str(card.value)} ' if card.value == 10 else f'##{str(card.value)} ')
+		i += 1
+		j += 2
+		k += 3
+		# if hand_counter < len(hands):
+		# 	for x in (i,j,k):
+		# 		to_print.insert(x, '|')
+		# 		hand_counter += 1
+
+	if is_dealer:
+		for x in (1, 3, 5):
+			to_print[x] = '###'
+
+	for x in (i, j, k):
+		to_print.insert(x, '\n')
+
+	print(to_print)
 
 def get_command():
     while True:
