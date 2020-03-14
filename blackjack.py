@@ -4,7 +4,7 @@ from math import floor
 import os
 import pdb
 
-def print_cards(hand, is_dealer):
+def print_cards(hands, is_dealer):
 	to_print = []
 
 	i = 0
@@ -13,14 +13,14 @@ def print_cards(hand, is_dealer):
 
 	hand_counter = 1
 
-	# for hand in hands:
-	for card in hand:
-		to_print.insert(i, f'{str(card.value)}# ' if card.value == 10 else f'{str(card.value)}## ')
-		to_print.insert(j, f'#{card.suit}# ')
-		to_print.insert(k, f'#{str(card.value)} ' if card.value == 10 else f'##{str(card.value)} ')
-		i += 1
-		j += 2
-		k += 3
+	for hand in hands:
+		for card in hand:
+			to_print.insert(i, f'{str(card.value)}# ' if card.value == 10 else f'{str(card.value)}## ')
+			to_print.insert(j, f'#{card.suit}# ')
+			to_print.insert(k, f'#{str(card.value)} ' if card.value == 10 else f'##{str(card.value)} ')
+			i += 1
+			j += 2
+			k += 3
 		# if hand_counter < len(hands):
 		# 	for x in (i,j,k):
 		# 		to_print.insert(x, '|')
@@ -48,11 +48,11 @@ def print_screen(dealer_hand, player_hand, total, bet, is_dealer):
 	print("Dealer's hand:")
 	print_cards(dealer_hand, is_dealer)
 	if not is_dealer:
-		print('Dealer has {}'.format(dealer_hand.score()))
+		print('Dealer has {}'.format(dealer_hand[0].score()))
 	print('\nYour hand:')
 	print_cards(player_hand, False)
 	if not is_dealer:
-		print('You have {}'.format(player_hand.score()))
+		print('You have {}'.format(player_hand[0].score()))
 	print('')
 
 def get_bet():
@@ -78,8 +78,8 @@ def place_bet(total):
 
 player_money = 100
 
-player_hand = Hand()
-dealer_hand = Hand()
+player_hand = [Hand()]
+dealer_hand = [Hand()]
 
 deck = Deck()
 full_deck_size = 52
@@ -95,13 +95,13 @@ while player_money > 0:
 		input('Deck reshuffled')
 
 	for x in range(2):
-		dealer_hand.append(deck.pop())
-		player_hand.append(deck.pop())
+		dealer_hand[0].append(deck.pop())
+		player_hand[0].append(deck.pop())
 
 	print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
 
-	p_score = player_hand.score()
-	d_score = dealer_hand.score()
+	p_score = player_hand[0].score()
+	d_score = dealer_hand[0].score()
 
 	if p_score < 21 and d_score != 21:
 		while True:
@@ -109,30 +109,32 @@ while player_money > 0:
 			if command == 's':
 				break
 			elif command == 'h':
-				player_hand.append(deck.pop())
+				player_hand[0].append(deck.pop())
 				print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
 			elif command == 'd':
 				if player_money - bet < 0:
 					print("You don't have enough funds to double down!")
 				else:
-					player_hand.append(deck.pop())
+					player_hand[0].append(deck.pop())
 					player_money -= bet
 					bet = bet * 2
 					break
+			if player_hand[0].score() > 20:
+				break
 
-		p_score = player_hand.score()
+		p_score = player_hand[0].score()
 
 		if p_score < 22:
-			while dealer_hand.score() < 17:
+			while dealer_hand[0].score() < 17:
 				print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 				input('Dealer hits...')
-				dealer_hand.append(deck.pop())
+				dealer_hand[0].append(deck.pop())
 
 			print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 
-			if p_score < dealer_hand.score() < 22:
+			if p_score < dealer_hand[0].score() < 22:
 				input('You lose!')
-			elif p_score == dealer_hand.score():
+			elif p_score == dealer_hand[0].score():
 				input('Draw!')
 				player_money += bet
 			else:
@@ -154,7 +156,7 @@ while player_money > 0:
 		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 		input('You lose!')
 
-	dealer_hand.clear()
-	player_hand.clear()
+	dealer_hand[0].clear()
+	player_hand[0].clear()
 
 input('Game over!')
