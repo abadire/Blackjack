@@ -33,7 +33,7 @@ def print_cards(hand, is_dealer):
 	for x in (i, j, k):
 		to_print.insert(x, '\n')
 
-	print(to_print)
+	print(''.join(to_print))
 
 def get_command():
 	while True:
@@ -41,15 +41,17 @@ def get_command():
 		if inp in ('h', 's', 'd'):
 			return inp[0]
 
-def print_screen(dealer_hand, player_hand, hide):
+def print_screen(dealer_hand, player_hand, total, bet, is_dealer):
 	os.system('cls' if os.name == 'nt' else 'clear')
+	print(f'Your total: {total}$')
+	print(f'Your bet: {bet}$')
 	print("Dealer's hand:")
-	print_cards(dealer_hand, hide)
-	if not hide:
+	print_cards(dealer_hand, is_dealer)
+	if not is_dealer:
 		print('Dealer has {}'.format(dealer_hand.score()))
 	print('\nYour hand:')
 	print_cards(player_hand, False)
-	if not hide:
+	if not is_dealer:
 		print('You have {}'.format(player_hand.score()))
 	print('')
 
@@ -96,7 +98,7 @@ while player_money > 0:
 		dealer_hand.append(deck.pop())
 		player_hand.append(deck.pop())
 
-	print_screen(dealer_hand, player_hand, hide=True)
+	print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
 
 	p_score = player_hand.score()
 	d_score = dealer_hand.score()
@@ -122,11 +124,11 @@ while player_money > 0:
 
 		if p_score < 22:
 			while dealer_hand.score() < 17:
-				print_screen(dealer_hand, player_hand, hide=False)
+				print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 				input('Dealer hits...')
 				dealer_hand.append(deck.pop())
 
-			print_screen(dealer_hand, player_hand, hide=False)
+			print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 
 			if p_score < dealer_hand.score() < 22:
 				input('You lose!')
@@ -137,19 +139,19 @@ while player_money > 0:
 				input('You win!')
 				player_money += bet * 2
 		else:
-			print_screen(dealer_hand, player_hand, hide=False)
+			print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 			input('You lose!')
 
 	elif p_score == 21 and d_score != 21:
-		print_screen(dealer_hand, player_hand, hide=False)
+		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 		input('You win!')
 		player_money += floor(bet * 2.5)
 	elif p_score == 21 and d_score == 21:
-		print_screen(dealer_hand, player_hand, hide=False)
+		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 		input('Draw!')
 		player_money += bet
 	else:
-		print_screen(dealer_hand, player_hand, hide=False)
+		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
 		input('You lose!')
 
 	dealer_hand.clear()
