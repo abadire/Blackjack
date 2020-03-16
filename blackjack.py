@@ -40,20 +40,32 @@ def print_cards(hands, is_dealer):
 
 	print(''.join(to_print))
 
-def get_command(hand):
+def get_command(hand, total, bet):
 	while True:
-		if len(hand) == 2 and hand[0].value == hand[1].value:
+		if len(hand) == 2 and hand[0].value == hand[1].value and total >= bet:
 			inp = input('You can (h)it, (s)tay, (d)ouble down or (sp)lit: ').lower().rstrip()
-		else:
+			if inp in ('h', 's', 'd', 'sp'):
+				break
+		elif total >= bet:
 			inp = input('You can (h)it, (s)tay or (d)ouble down: ').lower().rstrip()
-		if inp in ('h', 's', 'd', 'sp'):
-			return inp
+			if inp in ('h', 's', 'd'):
+				break
+		else:
+			inp = input('You can (h)it or (s)tay: ').lower().rstrip()
+			if inp in ('h', 's'):
+				break
+	return inp
 
-def print_screen(dealer_hand, player_hand, total, bet, is_dealer):
+def print_screen(dealer_hand, player_hand, total, bets, bid, is_dealer, idx=0):
 	os.system('cls' if os.name == 'nt' else 'clear')
 	print(f'Your total: {total}$')
-	print(f'Your bet: {bet}$')
-	print("Dealer's hand:")
+	print(f'Your bid: {bid}$')
+	if len(player_hand) > 1:
+		for i, hand in enumerate(player_hand):
+			print(f'Your {i+1} hand bet: {bets[i]}$')
+	else:
+		print(f'Your bet: {bets[idx]}$')
+	print("\nDealer's hand:")
 	print_cards(dealer_hand, is_dealer)
 	if not is_dealer:
 		print('Dealer has {}'.format(dealer_hand[0].score()))
@@ -66,7 +78,13 @@ def print_screen(dealer_hand, player_hand, total, bet, is_dealer):
 		print('')
 	print_cards(player_hand, False)
 	if not is_dealer:
-		print('You have {}'.format(player_hand[0].score()))
+		if len(player_hand) > 1:
+			for i, hand in enumerate(player_hand, 1):
+				print(f'Your {i} hand has {hand.score()}')
+		else:
+			print('You have {}'.format(player_hand[0].score()))
+	elif len(player_hand) > 1:
+		print(f'You are playing hand {idx+1}:')
 	print('')
 
 def get_bet():
@@ -92,15 +110,15 @@ def place_bet(total):
 
 player_money = 100
 
-player_hand = [Hand()]
-dealer_hand = [Hand()]
-
 deck = Deck()
 full_deck_size = 52
 
 while player_money > 0:
+	player_hand = [Hand()]
+	dealer_hand = [Hand()]
 	bets = []
-	bets.append(place_bet(player_money))
+	bid = place_bet(player_money)
+	bets.append(bid)
 	player_money -= bets[0]
 
 	if len(deck) / full_deck_size < 0.3: # if deck is running low on cards
@@ -110,131 +128,83 @@ while player_money > 0:
 
 	for x in range(2):
 		dealer_hand[0].append(deck.pop())
-	player_hand[0].append(Card('A', 'B'))
-	player_hand[0].append(Card('A', 'C'))
-
-	print_screen(dealer_hand, player_hand, player_money, bet[0], is_dealer=True)
+		player_hand[0].append(deck.pop())
+	# player_hand[0].append(Card('A', 'B'))
+	# player_hand[0].append(Card('A', 'C'))
 
 	p_score = player_hand[0].score()
 	d_score = dealer_hand[0].score()
 
 	if p_score < 21 and d_score != 21:
 		scores = []
-		for hand in player_hand:
+		for idx, hand in enumerate(player_hand):
+			if len(hand) == 1:
+				hand.append(deck.pop())
 			while True:
-				command = get_command(hand)
+				if hand.score() > 20:
+					break
+				print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=True, idx=idx)
+				command = get_command(hand, player_money, bets[0])
 				if command == 's':
-					states.append(command)
 					break
 				elif command == 'h':
 					hand.append(deck.pop())
-					print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
 				elif command == 'd':
-					if player_money - bet < 0:
-						print("You don't have enough funds to double down!")
-					else:
-						hand.append(deck.pop())
-						player_money -= bet
-						bet = bet * 2
-						states.append(command)
-						break
-				elif command == 'sp':
-					if player_money < bet:
-						print("You don't have enough funds to split!")
-					else:
-						player_money -= bet
-						player_hand.append(hand.pop())
-						break
-				if hand.score() > 20:
+					hand.append(deck.pop())
+					player_money -= bid
+					bets[idx] += bid
 					break
+				elif command == 'sp':
+					player_money -= bid
+					bets.append(bid)
+					player_hand.append(hand.pop())
+					hand.append(deck.pop())
+
 			scores.append(hand.score())
 
-		# if len(player_hand) > 1:
-		# 	state = []
-		# 	for hand in player_hand:
-		# 		if len(hand) == 1:
-		# 			hand.append(deck.pop())
-		# 	print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
-		#
-		# 	for ind, hand in enumerate(player_hand):
-		# 		print(f'Hand {ind+1}:')
-		# 		while True:
-		# 			command = get_command(player_hand[0])
-		# 			if command == 's':
-		# 				state.append(command)
-		# 				break
-		# 			elif command == 'h':
-		# 				state.append(command)
-		# 				hand.append(deck.pop())
-		# 				print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=True)
-		# 			elif command == 'd':
-		# 				state.append(command)
-		# 				if player_money < bet:
-		# 					print("You don't have enough funds to double down!")
-		# 				else:
-		# 					hand.append(deck.pop())
-		# 					player_money -= bet
-		# 					bet = bet * 2
-		# 					break
-		# 			elif command == 'sp':
-		# 				if player_money < bet:
-		# 					print("You don't have enough funds to split!")
-		# 				else:
-		# 					player_money -= bet
-		# 					player_hand.append(hand.pop())
-		# 					break
-		# 			if hand.score() > 20:
-		# 				break
-		# 		scores.append(hand.score())
-		#
-		# 	scores_less_22 = [score < 22 for score in scores]
+		scores_bool = [score < 22 for score in scores]
 
-			if any(scores_less_22):
-				while dealer_hand[0].score() < 17:
-					print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
-					input('Dealer hits...')
-					dealer_hand[0].append(deck.pop())
-
-				if dealer_hand[0].score() < 21:
-					for ind, score, state in enumerate(zip(scores, states)):
-						if dealer_hand[0].score() > score:
-
-
-		p_score = player_hand[0].score()
-
-		if p_score < 22:
+		if any(scores_bool):
 			while dealer_hand[0].score() < 17:
-				print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
-				input('Dealer hits...')
+				print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=False)
+				input('Dealer hits... Press ENTER')
 				dealer_hand[0].append(deck.pop())
-
-			print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
-
-			if p_score < dealer_hand[0].score() < 22:
-				input('You lose!')
-			elif p_score == dealer_hand[0].score():
-				input('Draw!')
-				player_money += bet
-			else:
-				input('You win!')
-				player_money += bet * 2
 		else:
-			print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
+			print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=True)
 			input('You lose!')
+			continue
+
+		print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=False)
+		d_score = dealer_hand[0].score()
+		for idx, (score, bet) in enumerate(zip(scores, bets)):
+			if d_score < 22:
+				if score < d_score or score > 21:
+					print('You lose!' if len(player_hand) == 1 else f'Your {idx+1} hand lose!')
+				elif score == d_score:
+					print('Draw!' if len(player_hand) == 1 else f'Your {idx+1} hand draw!')
+					player_money += bet
+				elif score > d_score:
+					print('You win!' if len(player_hand) == 1 else f'Your {idx+1} hand win!')
+					player_money += bet * 2
+			else:
+				if score < 22:
+					print('You win!' if len(player_hand) == 1 else f'Your {idx+1} hand win!')
+					player_money += bet * 2
+				else:
+					print('You lose!' if len(player_hand) == 1 else f'Your {idx+1} hand lose!')
+
+		input()
 
 	elif p_score == 21 and d_score != 21:
-		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
+		print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=False)
 		input('You win!')
-		player_money += floor(bet * 2.5)
+		player_money += floor(bid * 2.5)
 	elif p_score == 21 and d_score == 21:
-		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
+		print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=False)
 		input('Draw!')
-		player_money += bet
+		player_money += bid
 	else:
-		print_screen(dealer_hand, player_hand, player_money, bet, is_dealer=False)
+		print_screen(dealer_hand, player_hand, player_money, bets, bid, is_dealer=False)
 		input('You lose!')
-
-	dealer_hand[0].clear()
-	player_hand[0].clear()
 
 input('Game over!')
