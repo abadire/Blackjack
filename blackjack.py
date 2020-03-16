@@ -2,7 +2,6 @@ from classes.deck import Deck
 from classes.hand import Hand
 from math import floor
 import os
-import pdb
 
 def print_cards(hands, is_dealer):
 	to_print = []
@@ -126,8 +125,6 @@ while player_money > 0:
 	for x in range(2):
 		dealer_hand[0].append(deck.pop())
 		player_hand[0].append(deck.pop())
-	# player_hand[0].append(Card('A', 'B'))
-	# player_hand[0].append(Card('A', 'C'))
 
 	p_score = player_hand[0].score()
 	d_score = dealer_hand[0].score()
