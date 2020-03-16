@@ -1,8 +1,5 @@
 from classes.deck import Deck
 from classes.hand import Hand
-
-from classes.hand import Card
-
 from math import floor
 import os
 import pdb
